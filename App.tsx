@@ -13,6 +13,8 @@ import { PresetGallery } from './components/PresetGallery';
 import { AppState, SavedDesign, DesignIteration, AutoSaveState, UserLead, LandscapePreset } from './types';
 import { useUndoRedo } from './hooks/useUndoRedo';
 
+const MAX_PROMPT_LENGTH = 1000;
+
 function App() {
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
   const [currentDesignId, setCurrentDesignId] = useState<string | null>(null);
@@ -142,7 +144,6 @@ function App() {
   const handlePresetSelect = (preset: LandscapePreset) => {
     setPromptAndSave(preset.prompt);
     setActivePresetId(preset.id);
-    // Smooth scroll to the generate button area if on mobile
     if (window.innerWidth < 768) {
       document.getElementById('vision-prompt')?.scrollIntoView({ behavior: 'smooth' });
     }
@@ -205,6 +206,11 @@ function App() {
     await clearDraft();
   };
 
+  const handleClearPrompt = () => {
+    setPromptAndSave('');
+    setActivePresetId(undefined);
+  };
+
   const handleRefineSaved = (design: SavedDesign) => {
     setImagePreview(design.originalImage);
     setOriginalImageRef(design.originalImage);
@@ -237,6 +243,8 @@ function App() {
     setGeneratedImage(null);
     setPromptAndSave('');
   };
+
+  const promptPercentage = Math.min((prompt.length / MAX_PROMPT_LENGTH) * 100, 100);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -362,65 +370,4 @@ function App() {
                           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
                         </button>
                         <button onClick={redo} disabled={!canRedo} className="p-3 disabled:opacity-10 hover:text-leaf-600 hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-200 shadow-sm" title="Redo">
-                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 000 12h3" /></svg>
-                        </button>
-                      </div>
-                    </div>
-
-                    <textarea 
-                      id="vision-prompt"
-                      rows={4} 
-                      className="w-full border-2 border-gray-100 rounded-3xl p-6 text-base font-medium focus:border-leaf-500 transition-all outline-none bg-white shadow-xl shadow-gray-200/20 resize-none placeholder:text-gray-200 leading-relaxed" 
-                      placeholder="Describe your architectural dream... e.g. 'Add a contemporary slate patio with an integrated fire pit, low-level warm LED lighting, and a screen of bamboo for privacy...'" 
-                      value={prompt} 
-                      onChange={e => {
-                        setPrompt(e.target.value);
-                        setActivePresetId(undefined); // Clear preset selection if user edits manually
-                      }} 
-                    />
-
-                    {/* Presets Gallery - Moved below textarea */}
-                    <div className="px-1">
-                      <PresetGallery onSelect={handlePresetSelect} activePresetId={activePresetId} />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-8 bg-white border-t border-gray-50 flex justify-end">
-                  <Button 
-                    onClick={() => handleGenerate()} 
-                    disabled={!imagePreview || !prompt.trim()} 
-                    className="px-16 py-5 text-xl font-black uppercase tracking-[0.15em] shadow-[0_20px_40px_rgba(22,163,74,0.25)] hover:scale-105 active:scale-95 transition-all rounded-[1.5rem]"
-                  >
-                    Generate Vision
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <HowItWorks />
-          </div>
-        )}
-        
-        <div className="max-w-7xl mx-auto">
-          <SavedDesignsGallery 
-            designs={savedDesigns} 
-            onLoad={handleLoadSaved} 
-            onEdit={(d) => {
-              setImagePreview(d.originalImage);
-              setOriginalImageRef(d.originalImage);
-              setPromptAndSave(d.prompt);
-              setAppState(AppState.IDLE);
-              setGeneratedImage(null);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }} 
-            onRefine={handleRefineSaved}
-            onDelete={async id => setSavedDesigns(await deleteDesign(id))} 
-          />
-        </div>
-      </main>
-    </div>
-  );
-}
-
-export default App;
+                          <svg className="w-6 h-6" fill="none" viewBox="0 
