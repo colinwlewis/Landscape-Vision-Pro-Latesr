@@ -38,6 +38,9 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
   const [isCropping, setIsCropping] = useState(false);
   const [sliderPosition, setSliderPosition] = useState(50);
   const [quickPrompt, setQuickPrompt] = useState('');
+  const [parallax, setParallax] = useState({ x: 0, y: 0 });
+  const [isHoveringGen, setIsHoveringGen] = useState(false);
+  
   const sliderContainerRef = useRef<HTMLDivElement>(null);
   const isDraggingSlider = useRef(false);
 
@@ -62,6 +65,13 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
     if (!quickPrompt.trim()) return;
     onRefine(quickPrompt);
     setQuickPrompt('');
+  };
+
+  const handleGenMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setParallax({ x: x * 15, y: y * 15 });
   };
 
   const isAtBaseline = generatedImage === originalImage;
@@ -128,9 +138,22 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
                 <img src={originalImage} className="aspect-video object-cover w-full transition-transform duration-700 group-hover:scale-105" alt="Before" />
                 <div className="absolute bottom-6 left-6 bg-black/50 backdrop-blur-xl text-white text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-white/20">Original Site</div>
               </div>
-              <div className="relative group overflow-hidden rounded-[2rem] border-4 border-leaf-500 shadow-xl">
-                <img src={generatedImage} className="aspect-video object-cover w-full transition-transform duration-700 group-hover:scale-105" style={{ transform: `rotate(${rotation}deg)` }} alt="After" />
-                <div className="absolute bottom-6 right-6 bg-leaf-600 text-white text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-xl shadow-2xl">Vision Render</div>
+              <div 
+                className="relative group overflow-hidden rounded-[2rem] border-4 border-leaf-500 shadow-xl transition-all duration-500 hover:shadow-2xl hover:shadow-leaf-200/40"
+                onMouseMove={handleGenMouseMove}
+                onMouseEnter={() => setIsHoveringGen(true)}
+                onMouseLeave={() => { setIsHoveringGen(false); setParallax({ x: 0, y: 0 }); }}
+              >
+                <img 
+                  src={generatedImage} 
+                  className="aspect-video object-cover w-full transition-transform duration-300 ease-out" 
+                  style={{ 
+                    transform: `rotate(${rotation}deg) scale(${isHoveringGen ? 1.1 : 1}) translate(${parallax.x}px, ${parallax.y}px)`,
+                    filter: isHoveringGen ? 'brightness(1.03) contrast(1.02)' : 'none'
+                  }} 
+                  alt="After" 
+                />
+                <div className="absolute bottom-6 right-6 bg-leaf-600 text-white text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-xl shadow-2xl pointer-events-none">Vision Render</div>
               </div>
             </div>
           )}

@@ -1,8 +1,8 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { generateLandscapeVisualization } from './services/geminiService';
 import { getSavedDesigns, saveDesign, deleteDesign, saveDraft, getDraft, clearDraft } from './services/storageService';
-import { updateLeadDesign } from './services/firebaseService';
+import { saveLeadToFirebase, updateLeadDesign } from './services/firebaseService';
 import { Button } from './components/Button';
 import { ResultComparison } from './components/ResultComparison';
 import { SavedDesignsGallery } from './components/SavedDesignsGallery';
@@ -10,14 +10,8 @@ import { LoadingState } from './components/LoadingState';
 import { ConfirmationDialog } from './components/ConfirmationDialog';
 import { HowItWorks } from './components/HowItWorks';
 import { PresetGallery } from './components/PresetGallery';
-import { FeaturedTransformation } from './components/FeaturedTransformation';
-import { DemoShowcase } from './components/DemoShowcase';
-import { SignupForm } from './components/SignupForm';
-import { AISuggestions } from './components/AISuggestions';
-import { AppState, SavedDesign, DesignIteration, AutoSaveState, UserLead, LandscapePreset, LandscapingSuggestion } from './types';
+import { AppState, SavedDesign, DesignIteration, AutoSaveState, UserLead, LandscapePreset } from './types';
 import { useUndoRedo } from './hooks/useUndoRedo';
-
-const MAX_PROMPT_LENGTH = 1000;
 
 function App() {
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
@@ -30,10 +24,8 @@ function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [lastAutoSave, setLastAutoSave] = useState<number | null>(null);
   const [activePresetId, setActivePresetId] = useState<string | undefined>();
-  const [suggestions, setSuggestions] = useState<LandscapingSuggestion[]>([]);
-  const [showSignup, setShowSignup] = useState(false);
-  const [pendingAction, setPendingAction] = useState<{ type: 'save' | 'download' } | null>(null);
 
+  // User State (Optional lead capture)
   const [user, setUser] = useState<UserLead | null>(() => {
     const saved = localStorage.getItem('landscape_vision_user');
     return saved ? JSON.parse(saved) : null;
@@ -141,15 +133,6 @@ function App() {
       setPastIterations(prev => [...prev, newIteration]);
       setPromptAndSave(activePrompt);
       setAppState(AppState.SUCCESS);
-
-      // Simple mock suggestions logic based on prompt keywords
-      const mockSuggestions: LandscapingSuggestion[] = [
-        { category: 'Plants', item: 'Lavender Hidcote', description: 'Adds year-round structure and summer fragrance.' },
-        { category: 'Lighting', item: 'Solar Uplights', description: 'Highlights architectural trees like Acers at night.' },
-        { category: 'Hardscape', item: 'Granite Sets', description: 'Perfect for defining clean paths and borders.' }
-      ];
-      setSuggestions(mockSuggestions);
-
     } catch (err: any) {
       setErrorMsg(err.message || 'Error occurred during generation.');
       setAppState(AppState.ERROR);
@@ -159,50 +142,23 @@ function App() {
   const handlePresetSelect = (preset: LandscapePreset) => {
     setPromptAndSave(preset.prompt);
     setActivePresetId(preset.id);
+    // Smooth scroll to the generate button area if on mobile
     if (window.innerWidth < 768) {
       document.getElementById('vision-prompt')?.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
   const handleSaveClick = () => {
-    if (!user) {
-      setPendingAction({ type: 'save' });
-      setShowSignup(true);
-    } else {
-      setShowSaveDialog(true);
-    }
+    setShowSaveDialog(true);
   };
 
-  const handleDownloadClick = () => {
-    if (!generatedImage) return;
-    if (!user) {
-      setPendingAction({ type: 'download' });
-      setShowSignup(true);
-    } else {
-      executeDownload(generatedImage);
-    }
-  };
-
-  const executeDownload = (url: string) => {
+  const handleDownloadClick = (url: string) => {
     const link = document.createElement('a');
     link.href = url;
     link.download = `landscape-vision-pro-${Date.now()}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
-
-  const handleSignupComplete = (newUser: UserLead) => {
-    setUser(newUser);
-    localStorage.setItem('landscape_vision_user', JSON.stringify(newUser));
-    setShowSignup(false);
-    
-    if (pendingAction?.type === 'save') {
-      setShowSaveDialog(true);
-    } else if (pendingAction?.type === 'download' && generatedImage) {
-      executeDownload(generatedImage);
-    }
-    setPendingAction(null);
   };
 
   const confirmSaveDesign = async () => {
@@ -246,13 +202,7 @@ function App() {
     setCurrentDesignId(null);
     setErrorMsg(null);
     setActivePresetId(undefined);
-    setSuggestions([]);
     await clearDraft();
-  };
-
-  const handleClearPrompt = () => {
-    setPromptAndSave('');
-    setActivePresetId(undefined);
   };
 
   const handleRefineSaved = (design: SavedDesign) => {
@@ -288,8 +238,6 @@ function App() {
     setPromptAndSave('');
   };
 
-  const promptPercentage = Math.min((prompt.length / MAX_PROMPT_LENGTH) * 100, 100);
-
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
@@ -302,14 +250,6 @@ function App() {
               </h1>
             </div>
             <div className="flex items-center gap-6">
-               {user && (
-                 <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-leaf-50 rounded-full border border-leaf-100">
-                    <div className="w-6 h-6 bg-leaf-600 rounded-full flex items-center justify-center text-[10px] text-white font-bold">
-                      {user.name.charAt(0)}
-                    </div>
-                    <span className="text-[10px] font-black uppercase text-leaf-700">{user.name.split(' ')[0]}</span>
-                 </div>
-               )}
                <button onClick={() => document.getElementById('saved-designs-gallery')?.scrollIntoView({behavior:'smooth'})} className="text-sm font-bold text-gray-600 hover:text-leaf-600 transition-colors flex items-center gap-1">
                  Projects 
                  {savedDesigns.length > 0 && (
@@ -324,14 +264,6 @@ function App() {
       </header>
 
       <main className="flex-grow p-4 sm:p-6 lg:p-8">
-        {showSignup && (
-          <SignupForm 
-            actionName={pendingAction?.type === 'save' ? 'Save Design' : 'Download HD'} 
-            onComplete={handleSignupComplete} 
-            onCancel={() => { setShowSignup(false); setPendingAction(null); }}
-          />
-        )}
-
         {appState === AppState.LOADING ? (
            <LoadingState imagePreview={generatedImage || imagePreview} />
         ) : appState === AppState.SUCCESS && (generatedImage || imagePreview) ? (
@@ -348,15 +280,9 @@ function App() {
               onSelectIteration={handleSelectIteration}
               onViewBaseline={handleViewBaseline}
               isSaving={isSaving}
-              onDownload={handleDownloadClick}
+              onDownload={() => generatedImage && handleDownloadClick(generatedImage)}
             />
             
-            <AISuggestions 
-              suggestions={suggestions} 
-              onSelectSuggestion={(item) => handleGenerate(`Integrate ${item} into the landscaping naturally.`)} 
-              isLoading={appState === AppState.LOADING}
-            />
-
             <ConfirmationDialog 
               isOpen={showSaveDialog}
               title={currentDesignId ? "Update Project" : "Save Project History"}
@@ -375,8 +301,6 @@ function App() {
               </h2>
               <p className="text-lg text-gray-500 max-w-2xl mx-auto font-medium leading-relaxed">Landscape Vision Pro transforms property photos into photorealistic landscape designs in seconds using industry-leading AI.</p>
             </div>
-
-            <FeaturedTransformation />
 
             <div className="max-w-3xl mx-auto space-y-8">
               {errorMsg && (
@@ -443,56 +367,21 @@ function App() {
                       </div>
                     </div>
 
-                    <div className="space-y-4">
-                      <div className="relative group/input">
-                        <textarea 
-                          id="vision-prompt"
-                          rows={4} 
-                          className="w-full border-2 border-gray-100 rounded-3xl p-6 pr-14 text-base font-medium focus:border-leaf-500 transition-all outline-none bg-white shadow-xl shadow-gray-200/20 resize-none placeholder:text-gray-200 leading-relaxed" 
-                          placeholder="Describe your architectural dream... e.g. 'Add a contemporary slate patio with an integrated fire pit, low-level warm LED lighting, and a screen of bamboo for privacy...'" 
-                          value={prompt} 
-                          maxLength={MAX_PROMPT_LENGTH}
-                          onChange={e => {
-                            setPrompt(e.target.value);
-                            setActivePresetId(undefined);
-                          }} 
-                          onBlur={() => commit()}
-                        />
-                        
-                        {prompt && (
-                          <button 
-                            onClick={handleClearPrompt}
-                            className="absolute top-4 right-4 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all group-hover/input:opacity-100"
-                            title="Clear prompt"
-                          >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        )}
+                    <textarea 
+                      id="vision-prompt"
+                      rows={4} 
+                      className="w-full border-2 border-gray-100 rounded-3xl p-6 text-base font-medium focus:border-leaf-500 transition-all outline-none bg-white shadow-xl shadow-gray-200/20 resize-none placeholder:text-gray-200 leading-relaxed" 
+                      placeholder="Describe your architectural dream... e.g. 'Add a contemporary slate patio with an integrated fire pit, low-level warm LED lighting, and a screen of bamboo for privacy...'" 
+                      value={prompt} 
+                      onChange={e => {
+                        setPrompt(e.target.value);
+                        setActivePresetId(undefined); // Clear preset selection if user edits manually
+                      }} 
+                    />
 
-                        <div className="mt-4 flex items-center justify-between px-2">
-                           <div className="flex items-center gap-3 flex-grow max-w-xs">
-                              <div className="h-1.5 flex-grow bg-gray-100 rounded-full overflow-hidden">
-                                <div 
-                                  className={`h-full transition-all duration-300 ${promptPercentage > 90 ? 'bg-amber-500' : 'bg-leaf-500'}`} 
-                                  style={{ width: `${promptPercentage}%` }}
-                                ></div>
-                              </div>
-                              <span className={`text-[10px] font-black tracking-widest uppercase flex-shrink-0 ${promptPercentage > 90 ? 'text-amber-600' : 'text-gray-400'}`}>
-                                {prompt.length} / {MAX_PROMPT_LENGTH}
-                              </span>
-                           </div>
-                           <div className="flex gap-1">
-                              <div className={`w-2 h-2 rounded-full ${prompt.length > 0 ? 'bg-leaf-500 animate-pulse' : 'bg-gray-200'}`}></div>
-                           </div>
-                        </div>
-                      </div>
-
-                      {/* Presets Gallery */}
-                      <div className="px-1 pt-2">
-                        <PresetGallery onSelect={handlePresetSelect} activePresetId={activePresetId} />
-                      </div>
+                    {/* Presets Gallery - Moved below textarea */}
+                    <div className="px-1">
+                      <PresetGallery onSelect={handlePresetSelect} activePresetId={activePresetId} />
                     </div>
                   </div>
                 </div>
@@ -510,7 +399,6 @@ function App() {
             </div>
 
             <HowItWorks />
-            <DemoShowcase />
           </div>
         )}
         
@@ -531,16 +419,6 @@ function App() {
           />
         </div>
       </main>
-
-      <footer className="bg-white border-t border-gray-200 py-12">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-gray-400 text-xs font-black uppercase tracking-widest mb-4">Landscape Vision Pro &copy; {new Date().getFullYear()}</p>
-          <div className="flex justify-center gap-6">
-            <a href="#" className="text-gray-400 hover:text-leaf-600 transition-colors"><svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg></a>
-            <a href="#" className="text-gray-400 hover:text-leaf-600 transition-colors"><svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
