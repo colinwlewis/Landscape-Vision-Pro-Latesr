@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 
 export function useUndoRedo(initialValue: string) {
@@ -28,31 +29,8 @@ export function useUndoRedo(initialValue: string) {
     setValue(newValue);
   }, []);
 
-  const saveSnapshot = useCallback(() => {
-    setHistory((prev) => {
-      // Avoid saving if the value hasn't effectively changed from the current history point
-      if (prev[index] === value) return prev;
-
-      const newHistory = prev.slice(0, index + 1);
-      newHistory.push(value);
-      return newHistory;
-    });
-    
-    // We only increment index if the history was actually updated.
-    // However, since we can't easily read the result of the setHistory functional update here,
-    // we use a comprehensive check in the index setter or just rely on the logic that 
-    // if we are calling saveSnapshot, we intend to move forward.
-    // To be safe against the 'duplicate' check above:
-    setIndex((prevIndex) => {
-        // We need to access the *current* history to check duplication, but we are inside a state setter.
-        // Simplified approach: explicit check before calling setters.
-        return prevIndex; // Placeholder, see improved logic below
-    });
-  }, [value, index]);
-
-  // Refined saveSnapshot to ensure sync
   const commit = useCallback(() => {
-     if (history[index] !== value) {
+     if (history[index] !== value && value.trim() !== '') {
         const newHistory = history.slice(0, index + 1);
         newHistory.push(value);
         setHistory(newHistory);
@@ -62,7 +40,6 @@ export function useUndoRedo(initialValue: string) {
 
   const setAndSave = useCallback((newValue: string) => {
     setValue(newValue);
-    // We create a new history entry immediately
     const newHistory = history.slice(0, index + 1);
     newHistory.push(newValue);
     setHistory(newHistory);
