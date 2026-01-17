@@ -230,8 +230,8 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
           <div className="bg-leaf-600 p-6 rounded-[2rem] shadow-xl text-white space-y-4">
              <div>
                <h3 className="text-sm font-black uppercase tracking-widest mb-2">Iterate Design</h3>
-               <p className="text-xs font-medium text-white/90 leading-relaxed">
-                 Refine your vision by describing adjustments or adding new details.
+               <p className="text-sm font-medium text-white/90 leading-relaxed">
+                 Tell the AI specifically what to change, add, or remove to improve the design.
                </p>
              </div>
              <form onSubmit={handleQuickRefine} className="space-y-3">
@@ -245,9 +245,9 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
                 <Button 
                   type="submit" 
                   disabled={!quickPrompt.trim()} 
-                  className="w-full bg-white !text-leaf-900 hover:bg-leaf-50 font-black uppercase tracking-widest text-xs py-4 shadow-lg border-none"
+                  className="w-full bg-gray-900 !text-white hover:bg-black font-black uppercase tracking-widest text-sm py-4 shadow-xl border-none transition-all hover:scale-[1.02] active:scale-95"
                 >
-                  Apply Changes
+                  APPLY CHANGES
                 </Button>
              </form>
           </div>
