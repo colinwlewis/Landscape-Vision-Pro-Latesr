@@ -112,9 +112,9 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
 
       <div className="flex flex-col xl:flex-row gap-8 items-start">
         {/* Main Display Area - Toggle Fixed/Relative based on isExpanded */}
-        <div className={`transition-all duration-300 ${
+        <div className={`${
           isExpanded 
-            ? 'fixed inset-0 z-50 bg-gray-50 p-4 sm:p-8 overflow-hidden flex flex-col gap-6' 
+            ? 'fixed inset-0 z-[5000] bg-gray-50 p-4 sm:p-8 overflow-hidden flex flex-col gap-6 w-screen h-screen' 
             : 'flex-grow w-full space-y-6 relative'
         }`}>
           {/* Header Controls */}
@@ -127,17 +127,17 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
                <div className="flex bg-gray-100 rounded-xl p-1 shadow-inner border border-gray-200">
                 <button 
                   onClick={() => setViewMode('slider')} 
-                  className={`p-2 rounded-lg transition-all ${viewMode === 'slider' ? 'bg-white text-leaf-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                  title="Slider View"
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${viewMode === 'slider' ? 'bg-white text-leaf-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                 >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5" /></svg>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5" /></svg>
+                  <span className="text-[10px] font-black uppercase tracking-wider">Magic Slider</span>
                 </button>
                 <button 
                   onClick={() => setViewMode('split')} 
-                  className={`p-2 rounded-lg transition-all ${viewMode === 'split' ? 'bg-white text-leaf-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
-                  title="Side by Side"
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${viewMode === 'split' ? 'bg-white text-leaf-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
                 >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+                  <span className="text-[10px] font-black uppercase tracking-wider">Side-by-Side</span>
                 </button>
                </div>
               
@@ -228,16 +228,27 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
           </div>
 
           <div className="bg-leaf-600 p-6 rounded-[2rem] shadow-xl text-white space-y-4">
-             <h3 className="text-xs font-black uppercase tracking-widest">Iterate Design</h3>
+             <div>
+               <h3 className="text-xs font-black uppercase tracking-widest mb-1">Iterate Design</h3>
+               <p className="text-[11px] font-medium text-leaf-50 leading-relaxed opacity-90">
+                 Refine your vision by describing adjustments or adding new details.
+               </p>
+             </div>
              <form onSubmit={handleQuickRefine} className="space-y-3">
                 <textarea 
                   value={quickPrompt}
                   onChange={e => setQuickPrompt(e.target.value)}
                   placeholder="e.g. 'Add more lavender...'"
-                  className="w-full bg-leaf-700/50 border border-leaf-400/30 rounded-2xl p-4 text-sm outline-none focus:ring-2 focus:ring-leaf-300 resize-none font-medium"
+                  className="w-full bg-leaf-800/30 border border-leaf-400/30 rounded-2xl p-4 text-sm text-white placeholder:text-leaf-200/70 outline-none focus:ring-2 focus:ring-white/30 resize-none font-medium transition-all"
                   rows={3}
                 />
-                <Button type="submit" disabled={!quickPrompt.trim()} className="w-full bg-white !text-leaf-700 hover:bg-leaf-50 font-black uppercase tracking-widest text-[10px] py-3">Apply</Button>
+                <Button 
+                  type="submit" 
+                  disabled={!quickPrompt.trim()} 
+                  className="w-full bg-gray-900 !text-white hover:bg-gray-800 font-bold uppercase tracking-widest text-xs py-4 shadow-lg border-none"
+                >
+                  Apply Changes
+                </Button>
              </form>
           </div>
 
