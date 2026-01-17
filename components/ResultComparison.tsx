@@ -229,8 +229,8 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
 
           <div className="bg-leaf-600 p-6 rounded-[2rem] shadow-xl text-white space-y-4">
              <div>
-               <h3 className="text-xs font-black uppercase tracking-widest mb-1">Iterate Design</h3>
-               <p className="text-[11px] font-medium text-leaf-50 leading-relaxed opacity-90">
+               <h3 className="text-sm font-black uppercase tracking-widest mb-2">Iterate Design</h3>
+               <p className="text-xs font-medium text-white/90 leading-relaxed">
                  Refine your vision by describing adjustments or adding new details.
                </p>
              </div>
@@ -245,7 +245,7 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
                 <Button 
                   type="submit" 
                   disabled={!quickPrompt.trim()} 
-                  className="w-full bg-gray-900 !text-white hover:bg-gray-800 font-bold uppercase tracking-widest text-xs py-4 shadow-lg border-none"
+                  className="w-full bg-white !text-leaf-900 hover:bg-leaf-50 font-black uppercase tracking-widest text-xs py-4 shadow-lg border-none"
                 >
                   Apply Changes
                 </Button>
