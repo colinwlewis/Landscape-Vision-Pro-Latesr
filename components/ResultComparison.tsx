@@ -242,8 +242,8 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
                 <button 
                   type="submit" 
                   disabled={!quickPrompt.trim()} 
-                  style={{ backgroundColor: '#000000', color: '#ffffff' }}
-                  className="w-full !bg-black !text-white hover:!bg-gray-900 font-black uppercase tracking-[0.15em] text-lg py-5 rounded-xl shadow-xl border-2 border-white/20 transition-all transform hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: '#000000', color: '#ffffff', opacity: 1 }}
+                  className="w-full bg-black text-white hover:bg-gray-900 font-black uppercase tracking-[0.15em] text-lg py-5 rounded-xl shadow-xl border-2 border-white/20 transition-all transform hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   APPLY CHANGES
                 </button>

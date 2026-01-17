@@ -352,19 +352,24 @@ function App() {
 
                 <div className="p-6 sm:p-10 bg-gray-50/50">
                   <div className="flex flex-col gap-8">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 bg-leaf-600 text-white rounded-2xl w-10 h-10 flex items-center justify-center font-black shadow-lg shadow-leaf-200">2</div>
-                        <h3 className="ml-4 text-xl font-black text-gray-900 uppercase tracking-wide">Transformation Vision</h3>
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 bg-leaf-600 text-white rounded-2xl w-10 h-10 flex items-center justify-center font-black shadow-lg shadow-leaf-200">2</div>
+                          <h3 className="ml-4 text-xl font-black text-gray-900 uppercase tracking-wide">Transformation Vision</h3>
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={undo} disabled={!canUndo} className="p-3 disabled:opacity-10 hover:text-leaf-600 hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-200 shadow-sm" title="Undo">
+                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
+                          </button>
+                          <button onClick={redo} disabled={!canRedo} className="p-3 disabled:opacity-10 hover:text-leaf-600 hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-200 shadow-sm" title="Redo">
+                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 000 12h3" /></svg>
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <button onClick={undo} disabled={!canUndo} className="p-3 disabled:opacity-10 hover:text-leaf-600 hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-200 shadow-sm" title="Undo">
-                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
-                        </button>
-                        <button onClick={redo} disabled={!canRedo} className="p-3 disabled:opacity-10 hover:text-leaf-600 hover:bg-white rounded-xl transition-all border border-transparent hover:border-gray-200 shadow-sm" title="Redo">
-                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 000 12h3" /></svg>
-                        </button>
-                      </div>
+                      <p className="text-sm text-gray-500 font-medium ml-14">
+                        Type any custom idea you like—or pick a style—and AI will magically transform the scene.
+                      </p>
                     </div>
 
                     <textarea 
