@@ -1,3 +1,4 @@
+
 import { GoogleGenAI } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -49,9 +50,14 @@ export const generateLandscapeVisualization = async (
     }
 
     const enhancedPrompt = `
-      Act as a professional landscape architect.
-      Edit the provided image of a property to show: ${instruction}.
-      Maintain house structures. Ensure photorealism.
+      You are an expert landscape architect and photo editor. 
+      Your task is to modify the attached property image according to this specific instruction: "${instruction}".
+
+      CRITICAL EXECUTION GUIDELINES:
+      1. **Strict Adherence**: Follow the instruction exactly. If asked to resize an object (e.g., "make the pond smaller"), adjust its scale significantly and naturally fill the surrounding space. If asked to remove something, erase it completely and reconstruct the background.
+      2. **Preservation**: Do NOT modify the house structure, windows, roof, or background sky unless explicitly told to. Keep the perspective and camera angle identical to the original.
+      3. **Photorealism**: The result must look like a real photograph. Match the lighting, shadows, and color grading of the original input image.
+      4. **Contextual Blending**: Ensure any new or modified elements (plants, hardscape, water features) blend seamlessly with the existing environment.
     `;
 
     const response = await ai.models.generateContent({
