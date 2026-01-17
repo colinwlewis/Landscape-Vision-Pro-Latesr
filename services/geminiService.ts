@@ -49,15 +49,26 @@ export const generateLandscapeVisualization = async (
       imagePart = base64ToPart(imageSource);
     }
 
+    // Highly directive prompt to force the model into "Editor Mode" rather than "Generator Mode"
     const enhancedPrompt = `
-      You are an expert landscape architect and photo editor. 
-      Your task is to modify the attached property image according to this specific instruction: "${instruction}".
+      ACT AS A PROFESSIONAL PHOTO EDITOR AND LANDSCAPE ARCHITECT.
+      
+      YOUR GOAL: Modify the attached input image EXACTLY according to the user's instruction.
 
-      CRITICAL EXECUTION GUIDELINES:
-      1. **Strict Adherence**: Follow the instruction exactly. If asked to resize an object (e.g., "make the pond smaller"), adjust its scale significantly and naturally fill the surrounding space. If asked to remove something, erase it completely and reconstruct the background.
-      2. **Preservation**: Do NOT modify the house structure, windows, roof, or background sky unless explicitly told to. Keep the perspective and camera angle identical to the original.
-      3. **Photorealism**: The result must look like a real photograph. Match the lighting, shadows, and color grading of the original input image.
-      4. **Contextual Blending**: Ensure any new or modified elements (plants, hardscape, water features) blend seamlessly with the existing environment.
+      USER INSTRUCTION: "${instruction}"
+
+      STRICT EDITING RULES:
+      1. **Targeted Action**: Identify the specific element mentioned in the instruction (e.g., "pond", "patio", "tree") and apply the change ONLY to that element.
+      2. **Size & Scale**: If the user asks to make something "smaller", "larger", "wider", or "narrower", you MUST visibly and significantly alter its proportions.
+         - If making "smaller": Shrink the object and fill the empty space with appropriate background (grass, gravel, paving) that matches the surroundings.
+         - If making "larger": Expand the object realistically, displacing surrounding elements if necessary.
+      3. **Removal & Addition**: 
+         - "Remove": Erase the object completely and seamless inpaint the background.
+         - "Add": Place the new object in a perspective-correct position that fits the scene's depth and lighting.
+      4. **Preservation**: Do NOT regenerate the house, the sky, or unrelated existing features. Keep the original camera angle, lighting, and style. The output must look like the SAME photo, just edited.
+      5. **Realism**: The final result must be indistinguishable from a real photograph.
+
+      Execute this edit now.
     `;
 
     const response = await ai.models.generateContent({
