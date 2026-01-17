@@ -4,74 +4,130 @@ import { LandscapePreset } from '../types';
 
 const UK_PRESETS: LandscapePreset[] = [
   {
-    id: 'cottage',
-    title: 'English Cottage',
-    description: 'Traditional borders',
+    id: 'modern_minimalist',
+    title: 'Modern Minimalist',
+    description: 'Clean lines & geometry',
     image: '',
-    prompt: 'Transform into a classic English cottage garden. Add winding Yorkstone paths, overflowing perennial borders with lavender, foxgloves, and delphiniums, and a rustic wooden arbor with climbing roses.'
+    prompt: 'Transform into a contemporary modern minimalist garden. Use clean lines, geometric shapes, and a limited plant palette. Feature gravel areas, sleek large-format porcelain paving, and architectural plants like bamboo and ornamental grasses.'
   },
   {
-    id: 'modern',
-    title: 'London Courtyard',
-    description: 'Sleek urban minimalism',
+    id: 'cottage',
+    title: 'English Cottage',
+    description: 'Traditional & floral',
     image: '',
-    prompt: 'Modern urban courtyard style. Add grey porcelain paving, sleek raised rendered planters, architectural grasses like Miscanthus, and a minimalist black steel water feature with warm LED uplighting.'
+    prompt: 'Create a quintessential English cottage garden. Use informal planting with abundant flowers like roses, lavender, foxgloves, and hollyhocks. Include winding paths, rustic brick or stone, and a romantic, overgrown feel.'
   },
   {
     id: 'wildlife',
     title: 'Wildlife Haven',
-    description: 'Rewilding & meadows',
+    description: 'Nature friendly',
     image: '',
-    prompt: 'Ecological wildlife garden. Replace lawn with a native wildflower meadow patch, add a small wildlife pond with pebble edges, native hedging like Hawthorn, and multi-stem Silver Birch trees.'
+    prompt: 'Design a wildlife and nature-friendly garden. Include wildflower meadows, native species, a small pond for wildlife, log piles, and areas specifically designed for pollinators and birds.'
+  },
+  {
+    id: 'mediterranean',
+    title: 'Mediterranean',
+    description: 'Drought tolerant',
+    image: '',
+    prompt: 'Transform into a Mediterranean drought-tolerant garden. Use gravel mulch, warm terracotta paving, lavender, herbs like rosemary and thyme, olive trees, and succulents.'
+  },
+  {
+    id: 'japanese',
+    title: 'Japanese Zen',
+    description: 'Peaceful & precise',
+    image: '',
+    prompt: 'Create a Japanese-inspired Zen garden. Feature minimalist planting, cloud-pruned Acer Palmatum (maple) trees, bamboo, moss, carefully placed rocks, and perhaps a stone lantern or water feature.'
+  },
+  {
+    id: 'tropical',
+    title: 'Urban Jungle',
+    description: 'Lush exotic foliage',
+    image: '',
+    prompt: 'Design a tropical urban jungle garden. Use lush, dramatic foliage-focused planting with hardy palms, banana plants, tree ferns (Dicksonia antarctica), and large-leafed hostas for a dense, exotic look.'
   },
   {
     id: 'formal',
-    title: 'Victorian Formal',
-    description: 'Structured boxwood',
+    title: 'Formal Estate',
+    description: 'Symmetry & topiary',
     image: '',
-    prompt: 'Victorian inspired formal garden. Add geometric black and white tile paths, manicured boxwood parterres, a central stone birdbath, and structured rose pillars for a timeless architectural look.'
+    prompt: 'Create a formal, structured garden. Use manicured box hedging, topiary cones or balls, symmetrical layouts, a pristine lawn, and classical elements like statuary or a central stone fountain.'
   },
   {
-    id: 'med',
-    title: 'Dry Gravel Garden',
-    description: 'Mediterranean drought',
+    id: 'low_maintenance',
+    title: 'Low Maintenance',
+    description: 'Easy care living',
     image: '',
-    prompt: 'Mediterranean gravel garden. Replace soil/lawn with decorative light gravel, add structural plants like Agave, Rosemary, and Olive trees, with weathered terracotta accents.'
+    prompt: 'Design a low maintenance garden. Feature easy-care evergreen shrubs, extensive hard landscaping like composite decking or paving, and perhaps artificial lawn or slate chippings to minimize upkeep.'
   },
   {
-    id: 'zen',
-    title: 'Japanese Fusion',
-    description: 'Zen simplicity & Acers',
-    image: '',
-    prompt: 'Japanese-inspired Zen garden. Add a small stone pagoda, cloud-pruned Acer Palmatum trees, a bamboo privacy screen, and a slate-chip path with large basalt stepping stones.'
-  },
-  {
-    id: 'social',
-    title: 'Social Deck & Pergola',
-    description: 'Luxury entertainment',
-    image: '',
-    prompt: 'Luxury entertainment deck. Add a large cedar timber deck with a modern black aluminum pergola, an integrated outdoor kitchen with a stone worktop, and contemporary festoon lighting.'
-  },
-  {
-    id: 'edible',
+    id: 'kitchen_garden',
     title: 'Kitchen Garden',
-    description: 'Formal edible Potager',
+    description: 'Edible potager',
     image: '',
-    prompt: 'Formal kitchen garden (Potager). Add raised timber vegetable beds in a symmetrical layout, a traditional glasshouse with a brick base, and espalier fruit trees trained along the fence line.'
+    prompt: 'Transform into a productive edible kitchen garden (Potager). Include raised timber vegetable beds, a greenhouse, fruit trees, and herbs mixed with ornamental flowers for a functional yet beautiful space.'
   },
   {
     id: 'coastal',
-    title: 'Coastal Escape',
-    description: 'Hardy grasses & shingle',
+    title: 'Coastal Retreat',
+    description: 'Salt-tolerant & airy',
     image: '',
-    prompt: 'Coastal themed garden. Add weathered timber sleeper retaining walls, sea-holly, ornamental grasses like Calamagrostis, and a pebble shingle ground cover with driftwood accents.'
+    prompt: 'Create a seaside coastal garden. Use salt-tolerant plants like sea thrift and sea holly, weathered timber decking, driftwood features, and pebble or shingle ground cover to evoke a beach vibe.'
   },
   {
-    id: 'woodland',
-    title: 'Woodland Shade',
-    description: 'Lush ferns & forest',
+    id: 'urban_courtyard',
+    title: 'City Courtyard',
+    description: 'Small space design',
     image: '',
-    prompt: 'Lush woodland-style shade garden. Add a stumpery feature with mossy logs, various ferns, hostas, and bark-chip paths winding through a canopy of multi-stem Silver Birch and Rowan trees.'
+    prompt: 'Maximize this small urban courtyard. Use vertical planting on walls (living walls), built-in bench seating with raised beds, container gardens, and clever screening for privacy. Smart, space-saving design.'
+  },
+  {
+    id: 'rewilding',
+    title: 'Wild Meadow',
+    description: 'Natural rewilding',
+    image: '',
+    prompt: 'Adopt a rewilding approach. Let nature take over with long grasses, native wildflowers, and minimal intervention. A natural, soft, and ecological aesthetic that encourages biodiversity.'
+  },
+  {
+    id: 'scandi',
+    title: 'Scandi Nordic',
+    description: 'Wood & calm tones',
+    image: '',
+    prompt: 'Design a Scandi/Nordic style garden. Use simple functional design, natural light wood decking, multi-stem silver birch trees, ferns, and a calm, muted color palette with white and green.'
+  },
+  {
+    id: 'country_estate',
+    title: 'Country Estate',
+    description: 'Grand & classic',
+    image: '',
+    prompt: 'Transform into a grand English country estate style. Feature sweeping lawns, deep herbaceous borders full of color, rose gardens, and classical focal points like a pergola or stone urns.'
+  },
+  {
+    id: 'dry_gravel',
+    title: 'Dry Gravel',
+    description: 'Beth Chatto style',
+    image: '',
+    prompt: 'Create a dry gravel garden in the style of Beth Chatto. Use drought-resistant perennials planted directly into gravel, emphasizing texture and form over lush green lawns.'
+  },
+  {
+    id: 'moonlight',
+    title: 'Moonlight Garden',
+    description: 'White evening flowers',
+    image: '',
+    prompt: 'Design a moonlight evening garden. Focus on white and pale flowers that glow at dusk, fragrant plants like jasmine or night-scented stock, and subtle atmospheric lighting.'
+  },
+  {
+    id: 'sensory',
+    title: 'Sensory Space',
+    description: 'Texture & scent',
+    image: '',
+    prompt: 'Create a sensory garden for relaxation. Use highly textured plants like Lamb\'s Ear, fragrant herbs, ornamental grasses that rustle in the wind, and a gentle water feature for sound.'
+  },
+  {
+    id: 'prairie',
+    title: 'Prairie Style',
+    description: 'New Perennial / Oudolf',
+    image: '',
+    prompt: 'Design a New Perennial / Prairie style garden inspired by Piet Oudolf. Use naturalistic drifts of ornamental grasses and tall perennials like Echinacea and Rudbeckia in muted, earthy tones.'
   }
 ];
 
@@ -84,7 +140,7 @@ export const PresetGallery: React.FC<PresetGalleryProps> = ({ onSelect, activePr
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 px-1">
-        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Presets</h3>
+        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Design Styles</h3>
         <div className="h-px flex-grow bg-gray-100"></div>
       </div>
       <div className="flex overflow-x-auto pb-4 pt-1 px-1 custom-scrollbar gap-3 -mx-1">

@@ -34,7 +34,6 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
   isSaving = false
 }) => {
   const [viewMode, setViewMode] = useState<'slider' | 'split'>('split');
-  const [rotation, setRotation] = useState(0);
   const [isCropping, setIsCropping] = useState(false);
   const [sliderPosition, setSliderPosition] = useState(50);
   const [quickPrompt, setQuickPrompt] = useState('');
@@ -157,7 +156,6 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
                 )}
               </Button>
 
-              <Button variant="outline" onClick={() => setRotation(r => (r + 90) % 360)} className="!p-2"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></Button>
               <Button variant="outline" onClick={onReset} className="font-bold">New</Button>
               <Button variant="secondary" onClick={onSave} disabled={isSaving} className="font-bold">Save</Button>
               <Button onClick={onDownload} className="font-black tracking-widest uppercase text-xs shadow-lg" disabled={isAtBaseline}>Download HD</Button>
@@ -178,8 +176,7 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
                       src={generatedImage} 
                       className="absolute inset-0 h-full object-cover max-w-none" 
                       style={{ 
-                        width: sliderContainerRef.current?.offsetWidth || '100%', 
-                        transform: `rotate(${rotation}deg)` 
+                        width: sliderContainerRef.current?.offsetWidth || '100%' 
                       }} 
                       alt="Generated" 
                    />
@@ -206,7 +203,7 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
                     src={generatedImage} 
                     className={`object-cover w-full transition-transform duration-300 ease-out ${isExpanded ? 'h-full' : 'aspect-video'}`}
                     style={{ 
-                      transform: `rotate(${rotation}deg) scale(${isHoveringGen ? 1.1 : 1}) translate(${parallax.x}px, ${parallax.y}px)`,
+                      transform: `scale(${isHoveringGen ? 1.1 : 1}) translate(${parallax.x}px, ${parallax.y}px)`,
                       filter: isHoveringGen ? 'brightness(1.03) contrast(1.02)' : 'none'
                     }} 
                     alt="After" 
@@ -227,28 +224,29 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
              </p>
           </div>
 
-          <div className="bg-leaf-600 p-6 rounded-[2rem] shadow-xl text-white space-y-4">
-             <div>
-               <h3 className="text-sm font-black uppercase tracking-widest mb-2">Iterate Design</h3>
-               <p className="text-sm font-medium text-white/90 leading-relaxed">
-                 Tell the AI specifically what to change, add, or remove to improve the design.
+          <div className="bg-leaf-600 p-6 rounded-[2rem] shadow-xl text-white space-y-4 ring-1 ring-white/20">
+             <div className="space-y-1">
+               <h3 className="text-sm font-black uppercase tracking-widest text-white">Iterate Design</h3>
+               <p className="text-sm font-medium text-leaf-50 leading-relaxed">
+                 Describe specific changes you want to see (e.g. "Add a firepit", "Remove the tree").
                </p>
              </div>
-             <form onSubmit={handleQuickRefine} className="space-y-3">
+             <form onSubmit={handleQuickRefine} className="space-y-4 pt-2">
                 <textarea 
                   value={quickPrompt}
                   onChange={e => setQuickPrompt(e.target.value)}
                   placeholder="e.g. 'Add more lavender...'"
-                  className="w-full bg-leaf-800/30 border border-leaf-400/30 rounded-2xl p-4 text-sm text-white placeholder:text-leaf-200/70 outline-none focus:ring-2 focus:ring-white/30 resize-none font-medium transition-all"
+                  className="w-full bg-black/20 border-2 border-white/10 rounded-2xl p-4 text-base text-white placeholder:text-white/50 outline-none focus:ring-2 focus:ring-white/40 focus:bg-black/30 resize-none font-medium transition-all"
                   rows={3}
                 />
-                <Button 
+                <button 
                   type="submit" 
                   disabled={!quickPrompt.trim()} 
-                  className="w-full bg-gray-900 !text-white hover:bg-black font-black uppercase tracking-widest text-sm py-4 shadow-xl border-none transition-all hover:scale-[1.02] active:scale-95"
+                  style={{ backgroundColor: '#000000', color: '#ffffff' }}
+                  className="w-full !bg-black !text-white hover:!bg-gray-900 font-black uppercase tracking-[0.15em] text-lg py-5 rounded-xl shadow-xl border-2 border-white/20 transition-all transform hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   APPLY CHANGES
-                </Button>
+                </button>
              </form>
           </div>
 
