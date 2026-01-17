@@ -33,16 +33,20 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
   onViewBaseline,
   isSaving = false
 }) => {
-  const [viewMode, setViewMode] = useState<'slider' | 'split'>('split'); // Default to split for higher reliability
+  const [viewMode, setViewMode] = useState<'slider' | 'split'>('split');
   const [rotation, setRotation] = useState(0);
   const [isCropping, setIsCropping] = useState(false);
   const [sliderPosition, setSliderPosition] = useState(50);
   const [quickPrompt, setQuickPrompt] = useState('');
   const [parallax, setParallax] = useState({ x: 0, y: 0 });
   const [isHoveringGen, setIsHoveringGen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   
   const sliderContainerRef = useRef<HTMLDivElement>(null);
   const isDraggingSlider = useRef(false);
+
+  // Force update for slider image width on resize/expand
+  const [, setTick] = useState(0);
 
   const handleSliderMove = useCallback((clientX: number) => {
     if (sliderContainerRef.current) {
@@ -55,10 +59,34 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
   useEffect(() => {
     const handleMove = (e: MouseEvent) => isDraggingSlider.current && handleSliderMove(e.clientX);
     const handleUp = () => isDraggingSlider.current = false;
+    
+    // Handle resize to update slider inner image width
+    const handleResize = () => setTick(t => t + 1);
+
+    // Handle Escape to exit fullscreen
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isExpanded) setIsExpanded(false);
+    };
+
     window.addEventListener('mousemove', handleMove);
     window.addEventListener('mouseup', handleUp);
-    return () => { window.removeEventListener('mousemove', handleMove); window.removeEventListener('mouseup', handleUp); };
-  }, [handleSliderMove]);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => { 
+      window.removeEventListener('mousemove', handleMove); 
+      window.removeEventListener('mouseup', handleUp); 
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleSliderMove, isExpanded]);
+
+  // Trigger resize update when expansion toggles to ensure widths are correct
+  useEffect(() => {
+    // Small delay to allow transition/layout to settle
+    const timeout = setTimeout(() => setTick(t => t + 1), 50);
+    return () => clearTimeout(timeout);
+  }, [isExpanded]);
 
   const handleQuickRefine = (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,15 +105,20 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
   const isAtBaseline = generatedImage === originalImage;
 
   return (
-    <div className="w-full space-y-6 animate-fade-in">
+    <div className="w-full space-y-6">
       {isCropping && (
         <ImageCropper imageUrl={generatedImage} onCrop={(img) => {onCrop(img); setIsCropping(false)}} onCancel={() => setIsCropping(false)} />
       )}
 
       <div className="flex flex-col xl:flex-row gap-8 items-start">
-        {/* Main Display Area */}
-        <div className="flex-grow w-full space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-3xl shadow-sm border border-gray-100 gap-4">
+        {/* Main Display Area - Toggle Fixed/Relative based on isExpanded */}
+        <div className={`transition-all duration-300 ${
+          isExpanded 
+            ? 'fixed inset-0 z-50 bg-gray-50 p-4 sm:p-8 overflow-hidden flex flex-col gap-6' 
+            : 'flex-grow w-full space-y-6 relative'
+        }`}>
+          {/* Header Controls */}
+          <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-4 rounded-3xl shadow-sm border border-gray-100 gap-4 flex-shrink-0">
             <div className="flex flex-col">
               <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">Project View</h2>
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Interactive Comparison</p>
@@ -110,6 +143,20 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
               
               <div className="h-8 w-px bg-gray-200 mx-1 hidden md:block"></div>
 
+              {/* Expand / Fullscreen Toggle */}
+              <Button 
+                variant="outline" 
+                onClick={() => setIsExpanded(!isExpanded)} 
+                className="!p-2"
+                title={isExpanded ? "Collapse View" : "Expand View"}
+              >
+                {isExpanded ? (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+                )}
+              </Button>
+
               <Button variant="outline" onClick={() => setRotation(r => (r + 90) % 360)} className="!p-2"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></Button>
               <Button variant="outline" onClick={onReset} className="font-bold">New</Button>
               <Button variant="secondary" onClick={onSave} disabled={isSaving} className="font-bold">Save</Button>
@@ -117,49 +164,61 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
             </div>
           </div>
 
-          {viewMode === 'slider' ? (
-            <div ref={sliderContainerRef} className="relative aspect-video w-full overflow-hidden rounded-[2rem] shadow-2xl bg-gray-900 cursor-ew-resize select-none ring-1 ring-black/5"
-                 onMouseDown={() => isDraggingSlider.current = true}
-                 onTouchStart={() => isDraggingSlider.current = true}
-            >
-              <img src={originalImage} className="absolute inset-0 w-full h-full object-cover" alt="Original" />
-              <div className="absolute inset-0 overflow-hidden" style={{ width: `${sliderPosition}%` }}>
-                 <img src={generatedImage} className="absolute inset-0 w-full h-full object-cover max-w-none" style={{ width: sliderContainerRef.current?.offsetWidth || '100%', transform: `rotate(${rotation}deg)` }} alt="Generated" />
-              </div>
-              <div className="absolute inset-y-0 w-1 bg-white shadow-2xl flex items-center justify-center pointer-events-none" style={{ left: `${sliderPosition}%` }}>
-                 <div className="w-10 h-10 bg-white rounded-full shadow-2xl flex items-center justify-center text-leaf-600 border-4 border-leaf-50">
-                   <svg className="w-5 h-5 rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path d="M8 15l4 3 4-3m-8-6l4-3 4 3" /></svg>
-                 </div>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="relative group overflow-hidden rounded-[2rem] border border-gray-100 shadow-xl">
-                <img src={originalImage} className="aspect-video object-cover w-full transition-transform duration-700 group-hover:scale-105" alt="Before" />
-                <div className="absolute bottom-6 left-6 bg-black/50 backdrop-blur-xl text-white text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-white/20">Original Site</div>
-              </div>
-              <div 
-                className="relative group overflow-hidden rounded-[2rem] border-4 border-leaf-500 shadow-xl transition-all duration-500 hover:shadow-2xl hover:shadow-leaf-200/40"
-                onMouseMove={handleGenMouseMove}
-                onMouseEnter={() => setIsHoveringGen(true)}
-                onMouseLeave={() => { setIsHoveringGen(false); setParallax({ x: 0, y: 0 }); }}
+          {/* Image Container - Grows to fill space if expanded */}
+          <div className={`w-full ${isExpanded ? 'flex-grow min-h-0' : ''}`}>
+            {viewMode === 'slider' ? (
+              <div ref={sliderContainerRef} className={`relative overflow-hidden rounded-[2rem] shadow-2xl bg-gray-900 cursor-ew-resize select-none ring-1 ring-black/5 ${isExpanded ? 'h-full w-full' : 'aspect-video w-full'}`}
+                   onMouseDown={() => isDraggingSlider.current = true}
+                   onTouchStart={() => isDraggingSlider.current = true}
               >
-                <img 
-                  src={generatedImage} 
-                  className="aspect-video object-cover w-full transition-transform duration-300 ease-out" 
-                  style={{ 
-                    transform: `rotate(${rotation}deg) scale(${isHoveringGen ? 1.1 : 1}) translate(${parallax.x}px, ${parallax.y}px)`,
-                    filter: isHoveringGen ? 'brightness(1.03) contrast(1.02)' : 'none'
-                  }} 
-                  alt="After" 
-                />
-                <div className="absolute bottom-6 right-6 bg-leaf-600 text-white text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-xl shadow-2xl pointer-events-none">Vision Render</div>
+                <img src={originalImage} className="absolute inset-0 w-full h-full object-cover" alt="Original" />
+                <div className="absolute inset-0 overflow-hidden" style={{ width: `${sliderPosition}%` }}>
+                   {/* We use offsetWidth to keep the inner image size consistent with the container, ensuring alignment */}
+                   <img 
+                      src={generatedImage} 
+                      className="absolute inset-0 h-full object-cover max-w-none" 
+                      style={{ 
+                        width: sliderContainerRef.current?.offsetWidth || '100%', 
+                        transform: `rotate(${rotation}deg)` 
+                      }} 
+                      alt="Generated" 
+                   />
+                </div>
+                <div className="absolute inset-y-0 w-1 bg-white shadow-2xl flex items-center justify-center pointer-events-none" style={{ left: `${sliderPosition}%` }}>
+                   <div className="w-10 h-10 bg-white rounded-full shadow-2xl flex items-center justify-center text-leaf-600 border-4 border-leaf-50">
+                     <svg className="w-5 h-5 rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path d="M8 15l4 3 4-3m-8-6l4-3 4 3" /></svg>
+                   </div>
+                </div>
               </div>
-            </div>
-          )}
+            ) : (
+              <div className={`grid gap-6 ${isExpanded ? 'grid-cols-2 h-full' : 'grid-cols-1 md:grid-cols-2'}`}>
+                <div className={`relative group overflow-hidden rounded-[2rem] border border-gray-100 shadow-xl ${isExpanded ? 'h-full' : ''}`}>
+                  <img src={originalImage} className={`object-cover w-full transition-transform duration-700 group-hover:scale-105 ${isExpanded ? 'h-full' : 'aspect-video'}`} alt="Before" />
+                  <div className="absolute bottom-6 left-6 bg-black/50 backdrop-blur-xl text-white text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-xl border border-white/20">Original Site</div>
+                </div>
+                <div 
+                  className={`relative group overflow-hidden rounded-[2rem] border-4 border-leaf-500 shadow-xl transition-all duration-500 hover:shadow-2xl hover:shadow-leaf-200/40 ${isExpanded ? 'h-full' : ''}`}
+                  onMouseMove={handleGenMouseMove}
+                  onMouseEnter={() => setIsHoveringGen(true)}
+                  onMouseLeave={() => { setIsHoveringGen(false); setParallax({ x: 0, y: 0 }); }}
+                >
+                  <img 
+                    src={generatedImage} 
+                    className={`object-cover w-full transition-transform duration-300 ease-out ${isExpanded ? 'h-full' : 'aspect-video'}`}
+                    style={{ 
+                      transform: `rotate(${rotation}deg) scale(${isHoveringGen ? 1.1 : 1}) translate(${parallax.x}px, ${parallax.y}px)`,
+                      filter: isHoveringGen ? 'brightness(1.03) contrast(1.02)' : 'none'
+                    }} 
+                    alt="After" 
+                  />
+                  <div className="absolute bottom-6 right-6 bg-leaf-600 text-white text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-xl shadow-2xl pointer-events-none">Vision Render</div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Refinement Panel */}
+        {/* Refinement Panel - Remains visible underneath/behind when expanded, or hidden if covered */}
         <div className="w-full xl:w-80 space-y-6 flex-shrink-0">
           <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm space-y-3">
              <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Active Instructions</h3>
