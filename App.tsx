@@ -110,7 +110,7 @@ function App() {
       reader.readAsDataURL(file);
   };
 
-  const handleGenerate = async (customPrompt?: string) => {
+  const handleGenerate = async (customPrompt?: string, useOriginal: boolean = false) => {
     const activePrompt = customPrompt || prompt;
     if ((!selectedFile && !imagePreview) || !activePrompt.trim()) return;
     
@@ -119,7 +119,7 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     
     try {
-      const inputSource = generatedImage || selectedFile || imagePreview!;
+      const inputSource = useOriginal ? (originalImageRef || imagePreview!) : (generatedImage || selectedFile || imagePreview!);
       const resultImage = await generateLandscapeVisualization(inputSource, activePrompt);
       
       const newIteration: DesignIteration = {
@@ -146,6 +146,12 @@ function App() {
     if (window.innerWidth < 768) {
       document.getElementById('vision-prompt')?.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleApplyStyle = (preset: LandscapePreset) => {
+    setActivePresetId(preset.id);
+    // Force generation from original image when switching styles
+    handleGenerate(preset.prompt, true);
   };
 
   const handleSaveClick = () => {
@@ -275,7 +281,9 @@ function App() {
               pastIterations={pastIterations}
               onReset={handleReset} 
               onSave={handleSaveClick}
-              onRefine={handleGenerate}
+              onRefine={(prompt) => handleGenerate(prompt)}
+              onApplyStyle={handleApplyStyle}
+              activePresetId={activePresetId}
               onCrop={(img) => setGeneratedImage(img)}
               onSelectIteration={handleSelectIteration}
               onViewBaseline={handleViewBaseline}

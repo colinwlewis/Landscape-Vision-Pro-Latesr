@@ -2,7 +2,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from './Button';
 import { ImageCropper } from './ImageCropper';
-import { DesignIteration } from '../types';
+import { DesignIteration, LandscapePreset } from '../types';
+import { PresetGallery } from './PresetGallery';
 
 interface ResultComparisonProps {
   originalImage: string;
@@ -12,6 +13,8 @@ interface ResultComparisonProps {
   onReset: () => void;
   onSave: () => void;
   onRefine: (customPrompt?: string) => void;
+  onApplyStyle?: (preset: LandscapePreset) => void;
+  activePresetId?: string;
   onCrop: (newImage: string) => void;
   onDownload: () => void;
   onSelectIteration?: (iteration: DesignIteration) => void;
@@ -27,6 +30,8 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
   onReset,
   onSave,
   onRefine,
+  onApplyStyle,
+  activePresetId,
   onCrop,
   onDownload,
   onSelectIteration,
@@ -248,6 +253,19 @@ export const ResultComparison: React.FC<ResultComparisonProps> = ({
                   APPLY CHANGES
                 </button>
              </form>
+          </div>
+
+          {/* Style Switching Panel */}
+          <div className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm space-y-4">
+             <div className="space-y-1">
+               <h3 className="text-xs font-black text-gray-900 uppercase tracking-widest">Switch Style</h3>
+               <p className="text-xs text-gray-500 font-medium leading-relaxed">
+                 Reimagine the original scene with a new theme.
+               </p>
+             </div>
+             <div className="px-1 -mx-2">
+               <PresetGallery onSelect={(p) => onApplyStyle?.(p)} activePresetId={activePresetId} />
+             </div>
           </div>
 
           {pastIterations.length > 0 && (
