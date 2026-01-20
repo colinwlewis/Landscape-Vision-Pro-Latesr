@@ -13,6 +13,8 @@ import { PresetGallery } from './components/PresetGallery';
 import { AppState, SavedDesign, DesignIteration, AutoSaveState, UserLead, LandscapePreset } from './types';
 import { useUndoRedo } from './hooks/useUndoRedo';
 
+const DEMO_LIMIT = 10;
+
 function App() {
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
   const [currentDesignId, setCurrentDesignId] = useState<string | null>(null);
@@ -24,6 +26,10 @@ function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [lastAutoSave, setLastAutoSave] = useState<number | null>(null);
   const [activePresetId, setActivePresetId] = useState<string | undefined>();
+  
+  const [generationCount, setGenerationCount] = useState(() => {
+    return parseInt(localStorage.getItem('landscape_vision_demo_count') || '0', 10);
+  });
 
   // User State (Optional lead capture)
   const [user, setUser] = useState<UserLead | null>(() => {
@@ -114,6 +120,12 @@ function App() {
     const activePrompt = customPrompt || prompt;
     if ((!selectedFile && !imagePreview) || !activePrompt.trim()) return;
     
+    if (generationCount >= DEMO_LIMIT) {
+      setErrorMsg(`Demo trial limit reached (${DEMO_LIMIT}/${DEMO_LIMIT}). Please contact sales for full access.`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setAppState(AppState.LOADING);
     setErrorMsg(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -132,6 +144,12 @@ function App() {
       setGeneratedImage(resultImage);
       setPastIterations(prev => [...prev, newIteration]);
       setPromptAndSave(activePrompt);
+      
+      // Update generation count
+      const newCount = generationCount + 1;
+      setGenerationCount(newCount);
+      localStorage.setItem('landscape_vision_demo_count', newCount.toString());
+
       setAppState(AppState.SUCCESS);
     } catch (err: any) {
       setErrorMsg(err.message || 'Error occurred during generation.');
@@ -149,6 +167,10 @@ function App() {
   };
 
   const handleApplyStyle = (preset: LandscapePreset) => {
+    if (generationCount >= DEMO_LIMIT) {
+      setErrorMsg(`Demo trial limit reached (${DEMO_LIMIT}/${DEMO_LIMIT}). Please contact sales for full access.`);
+      return;
+    }
     setActivePresetId(preset.id);
     // Force generation from original image when switching styles
     handleGenerate(preset.prompt, true);
@@ -256,6 +278,12 @@ function App() {
               </h1>
             </div>
             <div className="flex items-center gap-6">
+               <div className="hidden sm:flex flex-col items-end mr-4">
+                 <div className="text-[10px] font-black uppercase tracking-widest text-gray-400">Demo Trial</div>
+                 <div className={`text-xs font-bold ${generationCount >= DEMO_LIMIT ? 'text-red-500' : 'text-leaf-600'}`}>
+                   {Math.max(0, DEMO_LIMIT - generationCount)} Generations Left
+                 </div>
+               </div>
                <button onClick={() => document.getElementById('saved-designs-gallery')?.scrollIntoView({behavior:'smooth'})} className="text-sm font-bold text-gray-600 hover:text-leaf-600 transition-colors flex items-center gap-1">
                  Projects 
                  {savedDesigns.length > 0 && (
@@ -399,13 +427,18 @@ function App() {
                   </div>
                 </div>
 
-                <div className="p-8 bg-white border-t border-gray-50 flex justify-end">
+                <div className="p-8 bg-white border-t border-gray-50 flex flex-col sm:flex-row justify-end items-center gap-4">
+                  {generationCount >= DEMO_LIMIT && (
+                    <span className="text-red-500 font-bold text-sm uppercase tracking-wide">
+                      Trial Limit Reached
+                    </span>
+                  )}
                   <Button 
                     onClick={() => handleGenerate()} 
-                    disabled={!imagePreview || !prompt.trim()} 
-                    className="px-16 py-5 text-xl font-black uppercase tracking-[0.15em] shadow-[0_20px_40px_rgba(22,163,74,0.25)] hover:scale-105 active:scale-95 transition-all rounded-[1.5rem]"
+                    disabled={!imagePreview || !prompt.trim() || generationCount >= DEMO_LIMIT} 
+                    className={`px-16 py-5 text-xl font-black uppercase tracking-[0.15em] shadow-[0_20px_40px_rgba(22,163,74,0.25)] transition-all rounded-[1.5rem] ${generationCount >= DEMO_LIMIT ? 'grayscale opacity-70 cursor-not-allowed' : 'hover:scale-105 active:scale-95'}`}
                   >
-                    Generate Vision
+                    {generationCount >= DEMO_LIMIT ? "Limit Reached" : "Generate Vision"}
                   </Button>
                 </div>
               </div>
